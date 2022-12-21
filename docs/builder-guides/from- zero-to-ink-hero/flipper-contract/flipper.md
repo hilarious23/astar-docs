@@ -4,15 +4,16 @@ sidebar_position: 1
 # Full-stack Flipper App
 ## Prerequisites
 
-This tutorial targets developers with an **basic** level in ink! and an **beginner** level in Rust.   
-Please follow these tutorials first:
+This tutorial targets developers with an **beginner** level in ink! and an **beginner** level in Rust.   
 
-To follow this tutorial you will need:
+## To follow this tutorial you will need:
 - to [set up your ink! environment](../../XVM%20and%20WASM/setup_your_ink_environment.md)
 - to [know "Hello, World! - The Flipper"](https://paritytech.github.io/ink/)
 - to [install swanky](../../../wasm/sc-dev/swanky/)
 - any substrate wallet in your browser([Talisman](https://www.talisman.xyz/), [Subwallet](https://subwallet.app/) etc)
-- SBY(Native token in Shibuya Network, which is our testnet) in your wallet from [faucet](https://portal.astar.network/#/shibuya-testnet/assets)
+
+If you want to deploy the contract in Shibuya Network, which is our testnet
+- SBY(Native token in Shibuya Network) in your wallet from [faucet](https://portal.astar.network/#/shibuya-testnet/assets)
 
 ## What will we do ?
 
@@ -20,14 +21,21 @@ in this tutorial we will compile&deploy flipper contract written in ink! and int
 
 ## What will we use ?
 
+[ink! 3.4.0 (latest)](https://github.com/paritytech/ink/tree/v3.4.0)   
 [flipper(wasm-showcase-dapps)](https://github.com/AstarNetwork/wasm-showcase-dapps/tree/main/flipper)   
 
 ## What will you learn ?
 
-- How to compile & deploy the simplest ink! smartcontract in testnet.
-- Structure of repo of web application to interact with smartcontract from UI
+- How to compile & deploy the simplest ink! contracts in local environemnt and testnet environment
+- Detecting Polkadot.js
+- Getting strorage date from ink! contracts
+- Executing functions of ink! contracts
+- Watching the status of transactions and getting their results
+- Structure of repo of web application to interact with contracts from UI
 
 ## Summary
+
+[I. File & Folder structure of the project](./Structure/file-structure.md)
 
 Steps
 1. Compile flipper contract with Swanky
@@ -52,43 +60,58 @@ yarn
 
 0. Init
 
-In `./contract` folder run
 ```bash
+mkdir contract
+cd contract
 swanky init flipper
 ```
-and chose `flipper` as template and as contract name. Chose `n` when asking to download swanky node.
+and chose `ink` as a contract language and `flipper` as template and as contract name. Chose `Y` when asking to download swanky node.
 If you get this error `✖ Error Checking dependencies`, please make sure you complete [setting up ink! environment](../../XVM%20and%20WASM/setup_your_ink_environment.md)s.
-<!--
+
 1. Start the local node
 
-- `cd flipper`
-- `swanky node start`
--->
-1. Build the contract
+```bash
+cd flipper
+swanky node start
+```
+
+2. Build the contract
 
 ```bash
 swanky contract compile flipper
 ```
+(Try rustup update if you face error which swanky doesn't return error)
 
-2. deploy the contract
-local
+3. deploy the contract
+
+Local
 ```bash
 swanky contract deploy flipper --account alice -g 100000000000 -a true
 ```
+
 Shibuya
 ```bash
 swanky contract deploy flipper --account alice --gas 100000000000 --args true --network shibuya
 ```
-
 Note down the contract address.
 
-Instead of using swanky, you can input this contract address for a while,
-`XvGYmchDETWtqy5fFnL6hW3c4oi2RaKs3XogMJ9Nj6heKGo`
+### Run the UI
 
-### Compile
-```rust
-swanky contract compile flipper
+Install Dependencies
+
+```bash
+cd ..
+yarn
 ```
+
+Start next.js server
+
+```bash
+yarn dev
+```
+
+Go to http://localhost:3000 and enter the contract address. Flip button flips the boolean value.
+
 
 ### Folder Structure
 | File Name                                                                   | About                     |
