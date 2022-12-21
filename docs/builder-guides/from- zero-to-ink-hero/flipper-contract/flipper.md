@@ -30,30 +30,65 @@ in this tutorial we will compile&deploy flipper contract written in ink! and int
 ## Summary
 
 Steps
-1, Compile flipper contract with Swanky
-2, Deploy the contract with Swanky and get the contract address
-3, Run the app
-4, Set the contract address
-5, Login with wallet
-6, flip
+1. Compile flipper contract with Swanky
+2. Deploy the contract with Swanky and get the contract address
+3. Run the app
+4. Set the contract address
+5. Login with wallet
+6. flip and get result
 
-## Create flipper contract
+### Setting
 
-  - Clone repo `git clone (https://github.com/AstarNetwork/wasm-showcase-dapps`
-  - Install dependencies by running `yarn` (`cd wasm-showcase-dapps/flipper` , `yarn` )
-  - `yarn start` - spin up realtime website
+Clone repo 
 
-### Create a blank folder
-
-Let's create a blank folder for ink! contracts.
-```rust
-cargo contract new blank
+```bash
+git clone https://github.com/AstarNetwork/wasm-showcase-dapps
 ```
-You can get full folders&files if you execute:
-```rust
-cargo contract new flipper
+and Install dependencies by running `yarn`
+```bash
+cd wasm-showcase-dapps/flipper
+yarn
 ```
-However, in this tutorial, we will create flipper contract and explain line by line.
+
+0. Init
+
+In `./contract` folder run
+```bash
+swanky init flipper
+```
+and chose `flipper` as template and as contract name. Chose `n` when asking to download swanky node.
+If you get this error `✖ Error Checking dependencies`, please make sure you complete [setting up ink! environment](../../XVM%20and%20WASM/setup_your_ink_environment.md)s.
+<!--
+1. Start the local node
+
+- `cd flipper`
+- `swanky node start`
+-->
+1. Build the contract
+
+```bash
+swanky contract compile flipper
+```
+
+2. deploy the contract
+local
+```bash
+swanky contract deploy flipper --account alice -g 100000000000 -a true
+```
+Shibuya
+```bash
+swanky contract deploy flipper --account alice --gas 100000000000 --args true --network shibuya
+```
+
+Note down the contract address.
+
+Instead of using swanky, you can input this contract address for a while,
+`XvGYmchDETWtqy5fFnL6hW3c4oi2RaKs3XogMJ9Nj6heKGo`
+
+### Compile
+```rust
+swanky contract compile flipper
+```
 
 ### Folder Structure
 | File Name                                                                   | About                     |
