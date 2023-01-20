@@ -1,127 +1,274 @@
 ---
-sidebar_position: 1
+sidebar_position: 2
 ---
-# Full-stack Flipper App
-## Prerequisites
 
-This tutorial targets developers with an **beginner** level in ink! and an **beginner** level in Rust.   
+# Flipper 
+This is step-by-step explanation of ink! smart contract by using the most simple app, which is flipper. You will understand the basic structure of ink! smart-contract.
 
-## To follow this tutorial you will need:
-- to [set up your ink! environment](../../XVM%20and%20WASM/setup_your_ink_environment.md)
-- to [know "Hello, World! - The Flipper"](https://paritytech.github.io/ink/)
-- to [install swanky](../../../wasm/sc-dev/swanky/)
-- any substrate wallet in your browser([Talisman](https://www.talisman.xyz/), [Subwallet](https://subwallet.app/) etc)
+## What is Flipper
+Flipper is a very basic smart contract. It has only one boolean in the storage (`true` or `false`), and when you flip, the value will be changed in to the other.
 
-If you want to deploy the contract in Shibuya Network, which is our testnet
-- SBY(Native token in Shibuya Network) in your wallet from [faucet](https://portal.astar.network/#/shibuya-testnet/assets)
+## Preparation
+Please refer to [Prerequisites](./prerequisites.md)
 
-## What will we do ?
-
-in this tutorial we will compile&deploy flipper contract written in ink! and interact with it from flipper application UI.
-
-## What will we use ?
-
-[ink! 3.4.0 (latest)](https://github.com/paritytech/ink/tree/v3.4.0)   
-[flipper(wasm-showcase-dapps)](https://github.com/AstarNetwork/wasm-showcase-dapps/tree/main/flipper)   
-
-## What will you learn ?
-
-- How to compile & deploy the simplest ink! contracts in local environemnt and testnet environment
-- Detecting Polkadot.js
-- Getting strorage date from ink! contracts
-- Executing functions of ink! contracts
-- Watching the status of transactions and getting their results
-- Structure of repo of web application to interact with contracts from UI
-
-## Summary
-
-[I. File & Folder structure of the project](./Structure/file-structure.md)
-
-Steps
-1. Compile flipper contract with Swanky
-2. Deploy the contract with Swanky and get the contract address
-3. Run the app
-4. Set the contract address
-5. Login with wallet
-6. flip and get result
-
-### Setting
-
-Clone repo 
+## Flipper Smart Contract
+In a folder run:
 
 ```bash
-git clone https://github.com/AstarNetwork/wasm-showcase-dapps
+$ cargo contract new flipper # flipper is introduced from the beginning.
 ```
-and Install dependencies by running `yarn`
-```bash
-cd wasm-showcase-dapps/flipper
-yarn
-```
-
-0. Init
 
 ```bash
-mkdir contract
-cd contract
-swanky init flipper
+$ cd flipper/
+$ cargo contract build #build flipper app
 ```
-and chose `ink` as a contract language and `flipper` as template and as contract name. Chose `Y` when asking to download swanky node.
-If you get this error `✖ Error Checking dependencies`, please make sure you complete [setting up ink! environment](../../XVM%20and%20WASM/setup_your_ink_environment.md)s.
 
-1. Start the local node
-
+💡 If you get an error saying:
 ```bash
-cd flipper
-swanky node start
+ERROR: cargo-contract cannot build using the "stable" channel. Switch to nightly.
 ```
-
-2. Build the contract
-
+Please try:
 ```bash
-swanky contract compile flipper
-```
-(Try rustup update if you face error which swanky doesn't return error)
-
-3. deploy the contract
-
-Local
-```bash
-swanky contract deploy flipper --account alice -g 100000000000 -a true
+$ rustup default nightly
 ```
 
-Shibuya
-```bash
-swanky contract deploy flipper --account alice --gas 100000000000 --args true --network shibuya
+Then, you get the full package and code for Flipper.
+Let’s dive into the structure.
+
+### The File Structure of Flipper
+
+- `target`: build info, binary info
+- `Cargo.lock`: lock file for dependency package
+- `Cargo.toml`: Package Config
+- `lib.rs`: Your contract logic
+
+### Flipper Contract (lib.rs)
+
+```rust
+#![cfg_attr(not(feature = "std"), no_std)]
+use ink_lang as ink;
+#[ink::contract]
+mod flipper {
+    /// Defines the storage of your contract.
+    /// Add new fields to the below struct in order
+    /// to add new static storage fields to your contract.
+    #[ink(storage)]
+			    pub struct Flipper {
+        /// Stores a single `bool` value on the storage.
+        value: bool,
+    }
+    impl Flipper {
+        /// Constructor that initializes the `bool` value to the given `init_value`.
+        #[ink(constructor)]
+        pub fn new(init_value: bool) -> Self {
+            Self { value: init_value }
+        }
+        /// Constructor that initializes the `bool` value to `false`.
+        ///
+        /// Constructors can delegate to other constructors.
+        #[ink(constructor)]
+        pub fn default() -> Self {
+            Self::new(Default::default())
+        }
+        /// A message that can be called on instantiated contracts.
+        /// This one flips the value of the stored `bool` from `true`
+        /// to `false` and vice versa.
+        #[ink(message)]
+        pub fn flip(&mut self) {
+            self.value = !self.value;
+        }
+        /// Simply returns the current value of our `bool`.
+        #[ink(message)]
+        pub fn get(&self) -> bool {
+            self.value
+        }
+    }
+    /// Unit tests in Rust are normally defined within such a `#[cfg(test)]`
+    /// module and test functions are marked with a `#[test]` attribute.
+    /// The below code is technically just normal Rust code.
+    #[cfg(test)]
+    mod tests {
+        /// Imports all the definitions from the outer scope so we can use them here.
+        use super::*;
+        /// Imports `ink_lang` so we can use `#[ink::test]`.
+        use ink_lang as ink;
+        /// We test if the default constructor does its job.
+        #[ink::test]
+        fn default_works() {
+            let flipper = Flipper::default();
+            assert_eq!(flipper.get(), false);
+        }
+        /// We test a simple use case of our contract.
+        #[ink::test]
+        fn it_works() {
+            let mut flipper = Flipper::new(false);
+            assert_eq!(flipper.get(), false);
+            flipper.flip();
+            assert_eq!(flipper.get(), true);
+        }
+    }
+}
 ```
-Note down the contract address.
 
-### Run the UI
+### Contract Structure (lib.rs)
 
-Install Dependencies
-
-```bash
-cd ..
-yarn
+```rust
+#![cfg_attr(not(feature = "std"), no_std)]
+use ink_lang as ink;
+#[ink::contract]
+mod flipper {
+		// This area is to define storage in the contract.
+    #[ink(storage)]
+    pub struct Flipper {
+    }
+		// This area is to define functional logic of the contract.
+    impl Flipper {
+    }
+		// This area is to test. You basically need this to make sure your contract is valid.
+    #[cfg(test)]
+    mod tests {
+    }
+}
 ```
 
-Start next.js server
+### Storage
 
-```bash
-yarn dev
+```rust
+    #[ink(storage)]
+    pub struct Flipper {
+    }
 ```
 
-Go to http://localhost:3000 and enter the contract address. Flip button flips the boolean value.
+This annotates a struct that represents the **contract's internal state.** ([details](https://use.ink/macros-attributes/storage)):
+```rust
+#[ink(storage)]
+```
 
+Storage types:
+- Rust primitives types
+    - `bool`
+    - `u{8,16,32,64,128}`
+    - `i{8,16,32,64,128}`
+    - `String`
+- Substrate specific types
+    - `AccountId`
+    - `Balance`
+    - `Hash`
+- ink! storage type
+    - `Mapping`
+- Custom data Structure [details](https://use.ink/datastructures/custom-datastructure)
 
-### Folder Structure
-| File Name                                                                   | About                     |
-|----------------------------------------------------------------------------|--------------------------------|
-| Cargo.toml              | Package Config       |          
-|  lib.rs |  Your contract logic |
+This means the contract(called Flipper) stores a single `bool` value on the storage.
 
-After your first compile, you will get 2 more files:
+```rust
+#[ink(storage)]
+pub struct Flipper {
+    value: bool,
+}
+```
 
-| File Name                                                                   | About                     |
-|----------------------------------------------------------------------------|--------------------------------|
-| Target              | build info, binary info       |          
-|  Cargo.lock |  lock file for dependency package |
+### Callable Functions
+This is when the contract is deployed and is responsible for **bootstrapping the initial contract state** into the storage, ([more details](https://use.ink/4.0.0-alpha.1/macros-attributes/constructor/)).
+
+```rust
+#[ink(constructor)]
+```
+
+Constructor that initializes the `bool` value to the given `init_value`.
+
+```rust
+#[ink(constructor)]
+pub fn new(init_value: bool) -> Self {
+    Self { value: init_value }
+}
+```
+
+Contracts are able to have multiple constructors. This is how to set default value of `bool`. As other language, default value of `bool` is `false`.
+
+```rust
+#[ink(constructor)]
+pub fn default() -> Self {
+    Self::new(Default::default())
+}
+```
+
+This marks a function as **publicly dispatchable**, meaning that it is exposed in the contract interface to the outside world, ([more details](https://use.ink/4.0.0-alpha.1/macros-attributes/message)). Note that all public functions must use the `#[ink(message)]` attribute.
+
+```rust
+#[ink(message)]
+```
+
+`flip` function modify storage items and, `get` function get the storage item.
+
+```rust
+#[ink(message)]
+pub fn flip(&mut self) {
+    self.value = !self.value;
+}
+#[ink(message)]
+pub fn get(&self) -> bool {
+    self.value
+}
+```
+
+💡 If you are simply *reading* from the contract storage, you only need to pass `&self`. But if you want to *modify* storage items, you will need to explicitly mark it as mutable `&mut self`.
+
+```rust
+impl Flipper {
+       
+        #[ink(constructor)]
+        pub fn new(init_value: bool) -> Self {
+            Self { value: init_value }
+        }
+        /// Constructor that initializes the `bool` value to `false`.
+        ///
+        /// Constructors can delegate to other constructors.
+        #[ink(constructor)]
+        pub fn default() -> Self {
+            Self::new(Default::default())
+        }
+        /// A message that can be called on instantiated contracts.
+        /// This one flips the value of the stored `bool` from `true`
+        /// to `false` and vice versa.
+        #[ink(message)]
+        pub fn flip(&mut self) {
+            self.value = !self.value;
+        }
+        /// Simply returns the current value of our `bool`.
+        #[ink(message)]
+        pub fn get(&self) -> bool {
+            self.value
+        }
+    }
+```
+
+### Test
+
+```rust
+#[cfg(test)]
+    mod tests {
+        /// Imports all the definitions from the outer scope so we can use them here.
+        use super::*;
+        /// Imports `ink_lang` so we can use `#[ink::test]`.
+        use ink_lang as ink;
+        /// We test if the default constructor does its job.
+        #[ink::test]
+        fn default_works() {
+            let flipper = Flipper::default();
+            assert_eq!(flipper.get(), false);
+        }
+        /// We test a simple use case of our contract.
+        #[ink::test]
+        fn it_works() {
+            let mut flipper = Flipper::new(false);
+            assert_eq!(flipper.get(), false);
+            flipper.flip();
+            assert_eq!(flipper.get(), true);
+        }
+    }
+```
+
+### Compile, Deploy and interact with contracts
+
+Here is the guide how to deploy your contract. Once you deploy it, you can interact with the contracts there:
+[deploy using Polkadot UI](https://docs.astar.network/docs/wasm/sc-dev/polkadotjs-ui/).
